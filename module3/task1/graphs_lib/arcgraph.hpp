@@ -3,7 +3,8 @@
 
 struct ArcGraph : public IGraph {
 public:
-    explicit ArcGraph(int vertexCount): _vertexCount(vertexCount) {}
+    explicit ArcGraph(int size, bool unoriented = false):
+    _vertexCount(size), _unoriented(unoriented) {}
 
     ArcGraph(const IGraph& other) : _pairs() {
         for (int from = 0; from < other.VerticesCount(); from++)
@@ -15,6 +16,8 @@ public:
         assert(isValidVertex(from) && isValidVertex(to));
         
         _pairs.push_back(std::make_pair(from, to));
+        if (_unoriented)
+            _pairs.push_back(std::make_pair(to, from));
     }
 
     int VerticesCount() const override {
@@ -48,6 +51,7 @@ public:
 private:
     std::vector<std::pair<int, int>> _pairs;
     int _vertexCount;
+    bool _unoriented;
 
     bool isValidVertex(int vertex) const {
         return 0 <= vertex && vertex < _vertexCount;

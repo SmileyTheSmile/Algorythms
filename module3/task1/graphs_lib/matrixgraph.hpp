@@ -4,8 +4,8 @@
 // Изначально я сделал это из массива массивов, но потом передумал и переделал под вектор векторов.
 struct MatrixGraph: public IGraph {
 public:
-    MatrixGraph(const int arraySize):
-    _adjacencyMatrix(arraySize, std::vector<bool>(arraySize, false)) { }    
+    MatrixGraph(const int size, bool unoriented = false):
+    _adjacencyMatrix(size, std::vector<bool>(size, false)), _unoriented(unoriented) {}    
     
     MatrixGraph(const IGraph &graph) {
         for (int i = 0; i < graph.VerticesCount(); i++)
@@ -19,6 +19,8 @@ public:
         assert(isValidVertex(from) && isValidVertex(to));
 
         _adjacencyMatrix[from][to] = true;
+        if (_unoriented)
+            _adjacencyMatrix[to][from] = true;
     }
 
     int VerticesCount() const override {
@@ -29,9 +31,9 @@ public:
         assert(isValidVertex(vertex));
         
         std::vector<int> nextVertices;
-        for (size_t i = 0; i < _adjacencyMatrix.size(); i++)
+        for (int i = 0; i < _adjacencyMatrix.size(); i++)
             if (_adjacencyMatrix[vertex][i])
-                nextVertices.push_back(_adjacencyMatrix[vertex][i]);
+                nextVertices.push_back(i);
         return nextVertices;
     }
     
@@ -47,6 +49,7 @@ public:
     
 private:
     std::vector<std::vector<bool>> _adjacencyMatrix;
+    bool _unoriented;
 
     bool isValidVertex(int vertex) const {
         return 0 <= vertex && vertex < _adjacencyMatrix.size();

@@ -3,28 +3,32 @@
 
 struct SetGraph : public IGraph {
 public:
-    explicit SetGraph(int vertexCount): adjacencySet(vertexCount) {}
+    SetGraph(int size, bool unoriented = false):
+    _adjacencySet(size), _unoriented(unoriented) {}
 
-    SetGraph(const IGraph& other): adjacencySet(other.VerticesCount()) {
+    SetGraph(const IGraph& other): _adjacencySet(other.VerticesCount()) {
         for (int from = 0; from < other.VerticesCount(); from++)
             for (int to : other.GetNextVertices(from))
-                adjacencySet[from].insert(to);
+                _adjacencySet[from].insert(to);
     }
 
     void AddEdge(int from, int to) override {
-        if (isValidVertex(from) && isValidVertex(to))
-            adjacencySet[from].insert(to);
+        assert(isValidVertex(from) && isValidVertex(to));
+
+        _adjacencySet[from].insert(to);
+        if (_unoriented)
+            _adjacencySet[to].insert(from);
     }
 
     int VerticesCount() const override {
-        return adjacencySet.size();
+        return _adjacencySet.size();
     }
 
     std::vector<int> GetNextVertices(int vertex) const override {
         assert(isValidVertex(vertex));
 
         std::vector<int> nextVertices;
-        for (int nextVertex : adjacencySet[vertex])
+        for (int nextVertex : _adjacencySet[vertex])
             nextVertices.push_back(nextVertex);
         return nextVertices;
     }
@@ -33,16 +37,17 @@ public:
         assert(isValidVertex(vertex));
 
         std::vector<int> prevVertices;
-        for (int from = 0; from < adjacencySet.size(); from++)
-            if (adjacencySet[from].count(vertex) > 0)
+        for (int from = 0; from < _adjacencySet.size(); from++)
+            if (_adjacencySet[from].count(vertex) > 0)
                 prevVertices.push_back(from);
         return prevVertices;
     }
 
 private:
-    std::vector<std::unordered_set<int>> adjacencySet;
+    std::vector<std::unordered_set<int>> _adjacencySet;
+    bool _unoriented;
 
     bool isValidVertex(int vertex) const {
-        return 0 <= vertex && vertex < adjacencySet.size();
+        return 0 <= vertex && vertex < _adjacencySet.size();
     }
 };

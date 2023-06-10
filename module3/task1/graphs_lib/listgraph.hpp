@@ -2,7 +2,8 @@
 
 struct ListGraph: public IGraph {
 public:
-    ListGraph(int size): _adjacencyLists(size) {}
+    ListGraph(int size, bool unoriented = false):
+    _adjacencyLists(size), _unoriented(unoriented) {}
     
     ListGraph(const IGraph &graph): _adjacencyLists(graph.VerticesCount()) {
         for (int i = 0; i < graph.VerticesCount(); i++)
@@ -15,6 +16,8 @@ public:
         assert(isValidVertex(from) && isValidVertex(to));
 
         _adjacencyLists[from].push_back(to);
+        if (_unoriented)
+            _adjacencyLists[to].push_back(from);
     }
 
     int VerticesCount() const override {
@@ -22,13 +25,13 @@ public:
     }
 
     std::vector<int> GetNextVertices(int vertex) const override {
-        assert(0 <= vertex && vertex < _adjacencyLists.size());
+        assert(isValidVertex(vertex));
 
         return _adjacencyLists[vertex];
     }
     
     std::vector<int> GetPrevVertices(int vertex) const override {
-        assert(0 <= vertex && vertex < _adjacencyLists.size());
+        assert(isValidVertex(vertex));
 
         std::vector<int> prevVertices;
         for (int from = 0; from < _adjacencyLists.size(); from++)
@@ -40,6 +43,7 @@ public:
     
 private:
     std::vector<std::vector<int>> _adjacencyLists;
+    bool _unoriented;
 
     bool isValidVertex(int vertex) const {
         return 0 <= vertex && vertex < _adjacencyLists.size();

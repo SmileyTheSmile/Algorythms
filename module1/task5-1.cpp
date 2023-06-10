@@ -29,17 +29,17 @@ struct Customer {
 };
 
 
-class Queue {
+class DynamicArray {
     public:
-        explicit Queue(int N):
+        explicit DynamicArray(int N):
             bufferSize(0), buffer(new Customer[N]) {}
-        ~Queue() { delete[] buffer; }
+        ~DynamicArray() { delete[] buffer; }
 
-        Queue(const Queue&); // Копированиe
-        Queue(Queue&&) noexcept; // Перемещение
+        DynamicArray(const DynamicArray&); // Копированиe
+        DynamicArray(DynamicArray&&) noexcept; // Перемещение
 
-        Queue& operator=(const Queue&); // Присваивание копированием
-        Queue& operator=(Queue&&) noexcept; // Присваивание перемещением
+        DynamicArray& operator=(const DynamicArray&); // Присваивание копированием
+        DynamicArray& operator=(DynamicArray&&) noexcept; // Присваивание перемещением
 
         int size() const { return bufferSize; }
         int requredAds();
@@ -69,13 +69,13 @@ bool Customer::operator<(const Customer &other) const {
     return false;
 }
 
-Queue& Queue::operator=(const Queue& queueToCopy) {
-    Queue temp(queueToCopy);
+DynamicArray& DynamicArray::operator=(const DynamicArray& queueToCopy) {
+    DynamicArray temp(queueToCopy);
     *this = std::move(temp);
     return *this;
 }
 
-Queue& Queue::operator=(Queue&& queueToMove) noexcept {
+DynamicArray& DynamicArray::operator=(DynamicArray&& queueToMove) noexcept {
     if (this == &queueToMove)
         return *this;
 
@@ -87,18 +87,18 @@ Queue& Queue::operator=(Queue&& queueToMove) noexcept {
     return *this;
 }
 
-Queue::Queue(const Queue& queueToCopy) :
+DynamicArray::DynamicArray(const DynamicArray& queueToCopy) :
     bufferSize(queueToCopy.bufferSize), buffer(new Customer[bufferSize]) {
     for (int i = 0; i < bufferSize; i++)
         buffer[i] = queueToCopy.buffer[i];
 }
 
-Queue::Queue(Queue&& queueToReplace) noexcept:
+DynamicArray::DynamicArray(DynamicArray&& queueToReplace) noexcept:
     bufferSize(queueToReplace.bufferSize), buffer(queueToReplace.buffer) {
     queueToReplace.buffer = nullptr;
 }
 
-int Queue::requredAds() {
+int DynamicArray::requredAds() {
     int ads = 0;
     
     for (int customerIndex = 0; customerIndex < size(); customerIndex++) {
@@ -115,7 +115,7 @@ int Queue::requredAds() {
     return ads;
 }
 
-void Queue::addAdsFromTimePeriod(int customerIndex, int timePeriod) {
+void DynamicArray::addAdsFromTimePeriod(int customerIndex, int timePeriod) {
     for (
             int i = customerIndex;
             i < size() && buffer[i].enterTime <= timePeriod;
@@ -124,11 +124,11 @@ void Queue::addAdsFromTimePeriod(int customerIndex, int timePeriod) {
         buffer[i].adsNum++;
 }
 
-void Queue::add(Customer customer) {
+void DynamicArray::add(Customer customer) {
     buffer[bufferSize++] = customer;
 }
 
-void Queue::mergeSortRecursive(int start, int end) {
+void DynamicArray::mergeSortRecursive(int start, int end) {
     if (start + 1 >= end)
         return;
 
@@ -140,13 +140,13 @@ void Queue::mergeSortRecursive(int start, int end) {
     merge(start, middle, end);
 }
 
-void Queue::mergeSortIterative(int n) {
+void DynamicArray::mergeSortIterative(int n) {
     for (int i = 1; i < n; i *= 2)
         for (int j = 0; j < n - i; j += 2 * i)
             merge(j, j + i, std::min(j + 2 * i, n));
 }
 
-void Queue::merge(int start, int middle, int end) {
+void DynamicArray::merge(int start, int middle, int end) {
     Customer *temp = new Customer[middle - start];
     memcpy(temp, buffer + start, sizeof(Customer) * (unsigned long)(middle - start));
 
@@ -174,7 +174,7 @@ int main() {
     int n = 0;
     std::cin >> n;
 
-    Queue queue(n);
+    DynamicArray queue(n);
     for (int i = 0; i < n; i++)
     {
         int enterTime = 0, exitTime = 0;
