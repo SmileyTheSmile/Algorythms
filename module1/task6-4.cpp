@@ -8,14 +8,14 @@ bool IsLessDefault(const T &left, const T &right) {
     return left < right;
 }
 
-size_t RandomPivot(int *nums, const size_t &left, const size_t &right) {
+size_t RandomPivot(const size_t &left, const size_t &right, int *nums) {
     srand(time(NULL));
     return rand() % (right - left + 1) + left;
 }
 
-size_t Partition(int *nums, const size_t &left, const size_t &right,
+size_t Partition(const size_t &left, const size_t &right, int *nums, 
                  bool isLess(const int&, const int&) = IsLessDefault<int>) {
-    size_t pivotIndex = RandomPivot(nums, left, right);
+    size_t pivotIndex = RandomPivot(left, right, nums);
     int pivot = nums[pivotIndex];
     std::swap(nums[pivotIndex], nums[right]);
 
@@ -38,16 +38,16 @@ size_t Partition(int *nums, const size_t &left, const size_t &right,
     }
 }
 
-int KthStatistic(int* arr, size_t left, size_t right, const size_t& k,
+int KthStatistic(size_t left, size_t right, int *arr, const size_t& k,
                bool isLess(const int&, const int&) = IsLessDefault<int>) {
-    size_t pivotIndex = Partition(arr, left, right, isLess);
+    size_t pivotIndex = Partition(left, right, arr, isLess);
     while (pivotIndex != k) {
         if (k > pivotIndex)
             left = pivotIndex + 1;
         else
             right = pivotIndex - 1;
             
-        pivotIndex = Partition(arr, left, right, isLess);
+        pivotIndex = Partition(left, right, arr, isLess);
     }
 
     return arr[pivotIndex];
@@ -62,7 +62,7 @@ int main() {
         std::cin >> nums[i];
     
     for (float percentile : {0.1, 0.5, 0.9})
-        std::cout << KthStatistic(nums, 0, n - 1, percentile * n, IsLessDefault) << "\n";
+        std::cout << KthStatistic(0, n - 1, nums, percentile * n, IsLessDefault) << "\n";
     
     delete[] nums;
 

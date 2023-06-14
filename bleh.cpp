@@ -29,3 +29,29 @@ void traversePostorder(Node* tree) {
         }
     }
 }
+
+void printHuffmanTable(std::map<char, int> table) {
+    for (auto const& imap: table)
+        std::cerr << "Key: " << imap.first << ", value: " << imap.second << std::endl;
+}
+
+void printHuffmanMinHeap(MinHeap heap) {
+    while (!heap.empty()) {
+        Node* node = heap.top(); heap.pop();
+        std::cerr << "Key: " << node->value << ", value: " << node->frequency << std::endl;
+    }
+}
+
+void traversePostorder(Node* tree) {
+    if (tree->left)
+        traversePostorder(tree->left);
+    std::cout << " " << tree->frequency << " " << std::endl;
+    if (tree->right)
+        traversePostorder(tree->right);
+}
+void visualizeBuffer(const std::vector<byte>& buffer) {
+    for (auto &b: buffer)
+        std::cout << std::bitset<8>(b) << "|";
+    std::cout << std::endl;
+}
+

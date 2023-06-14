@@ -8,9 +8,7 @@
 #include <stack>     
 #include <queue>
 #include <functional>
-
 //#include "Huffman.h"
-#define MAX_TREE_HEIGHT 50
 
 typedef unsigned char byte;
 
@@ -33,6 +31,8 @@ struct Node {
     bool operator> (const Node& other) const { return frequency > other.frequency; }
 };
 
+
+#define MAX_TREE_HEIGHT 50
 typedef std::priority_queue<Node*, std::deque<Node*>, std::greater<Node*>> MinHeap;
 
 
@@ -40,7 +40,7 @@ class BitWriter {
     public:
         BitWriter(): bitCount(0)  {}
         
-        void WriteBit(unsigned char bit)
+        void WriteBit(byte bit)
         {
             if (bitCount % 8 == 0)
                 buffer.push_back(0);
@@ -49,7 +49,7 @@ class BitWriter {
             bitCount++;
         }
         
-        void WriteByte(unsigned char byte) {
+        void WriteByte(byte byte) {
             if (bitCount % 8 == 0) {
                 buffer.push_back(byte);
             } else {
@@ -60,7 +60,7 @@ class BitWriter {
             bitCount += 8;
         }
         
-        const std::vector<unsigned char>& GetBuffer() const {
+        const std::vector<byte>& GetBuffer() const {
             return buffer;
         }
         
@@ -69,21 +69,10 @@ class BitWriter {
         }
         
     private:
-        std::vector<unsigned char> buffer;
+        std::vector<byte> buffer;
         size_t bitCount;
 };
 
-void visualizeBuffer(const std::vector<unsigned char>& buffer) {
-    for (auto &b: buffer)
-        std::cout << std::bitset<8>(b) << "|";
-    std::cout << std::endl;
-}
-
-
-void printHuffmanTable(std::map<char, int> table) {
-    for(auto const& imap: table)
-        std::cerr << "Key: " << imap.first << ", value: " << imap.second << std::endl;
-}
 
 std::map<char, int> getHuffmanTable(std::ifstream& original) {
     std::map<char, int> huffmanTable;
@@ -94,21 +83,12 @@ std::map<char, int> getHuffmanTable(std::ifstream& original) {
     return huffmanTable;
 }
 
-
-void printHuffmanMinHeap(MinHeap heap) {
-    while (!heap.empty()) {
-        Node* node = heap.top(); heap.pop();
-        std::cerr << "Key: " << node->value << ", value: " << node->frequency << std::endl;
-    }
-}
-
 MinHeap huffmanTableToMinHeap(const std::map<char, int>& table) {
     MinHeap heap;
     for(auto const imap: table)
         heap.push(new Node(imap.first, imap.second));
     return heap;
 }
-
 
 Node* minHeapToHuffmanTree(MinHeap& heap) {
     while (heap.size() > 1) {
@@ -125,45 +105,56 @@ Node* minHeapToHuffmanTree(MinHeap& heap) {
     return heap.top();
 }
 
-void traversePostorder(Node* tree) {
-    if (tree->left)
-        traversePostorder(tree->left);
-    std::cout << " " << tree->frequency << " " << std::endl;
-    if (tree->right)
-        traversePostorder(tree->right);
-}
+void huffmanTreeToMap(Node* root, int arr[], int top, std::map<byte, std::string> &huffmanCodes) {
+    if (root->left) {
+        arr[top] = 0;
+        huffmanTreeToMap(root->left, arr, top + 1, huffmanCodes);
+    }
 
-void printArray(int arr[], int n, std::ofstream& compressed) {
-    for (int i = 0; i < n; ++i)
-        compressed << arr[i];
-    compressed << "\n";
-}
+    if (root->right) {
+        arr[top] = 1;
+        huffmanTreeToMap(root->right, arr, top + 1, huffmanCodes);
+    }
 
-void printHCodes(Node* root, int arr[], int top, std::ofstream& compressed) {
-  if (root->left) {
-    arr[top] = 0;
-    printHCodes(root->left, arr, top + 1, compressed);
-  }
+    if (!(root->left) && !(root->right)) {
+        std::string code;
+        for (int i = 0; i < top; i++)
+            code += std::to_string(arr[i]);
 
-  if (root->right) {
-    arr[top] = 1;
-    printHCodes(root->right, arr, top + 1, compressed);
-  }
-
-  if (!(root->left) && !(root->right)) {
-    compressed << root->value << "  | ";
-    printArray(arr, top, compressed);
-  }
+        huffmanCodes[root->value] = code;
+    }
 }
 
 
 void Encode(std::ifstream& original, std::ofstream& compressed) {
-    std::map<char, int> huffmanTable = getHuffmanTable(original);
+    std::vector<std::string> text;
+
+    std::map<char, int> huffmanTable;
+    std::string line;
+    while (std::getline(original, line)) {
+        for (char symbol : line)
+            huffmanTable.operator[](symbol)++;
+        text.push_back(line);
+    }
+
     MinHeap nodesHeap = huffmanTableToMinHeap(huffmanTable);
     Node* huffmanTree = minHeapToHuffmanTree(nodesHeap);
 
     int arr[MAX_TREE_HEIGHT], top = 0;
-    printHCodes(huffmanTree, arr, top, compressed);
+    std::map<byte, std::string> huffmanCodes;
+    huffmanTreeToMap(huffmanTree, arr, top, huffmanCodes);
+
+    for (auto const& imap: huffmanCodes)
+        std::cerr << "Key: " << imap.first << ", value: " << imap.second << std::endl;
+
+    BitWriter writer;
+    for (std::string line : text) {
+        for (char symbol : line) {
+            int code = std::stoi(huffmanCodes[symbol]);
+            writer.WriteBit()
+        }
+    }
+    //compressed << huffmanCodes[symbol];
 }
 
 void Decode(std::ifstream& compressed, std::ofstream& original) {
@@ -178,8 +169,10 @@ int main(int argc, const char* argv[]) {
     std::string outputFilePath = "/home/dan/Documents/Projects/Algorythms/output.txt";
 
     std::ifstream inputFile(inputFilePath);
-    std::ofstream outputFile(outputFilePath);
     assert(inputFile.is_open());
+
+    std::ofstream outputFile(outputFilePath);
+    assert(outputFile.is_open());
 
     Encode(inputFile, outputFile);
 
